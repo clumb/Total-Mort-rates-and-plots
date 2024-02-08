@@ -40,8 +40,36 @@ library(patchwork) # to make combined plots, like LKTR age frequency
 
 ## recommend using the comment-based syntax (#|) vs. chunk options on the first line (e.g. ```{r, echo = FALSE}) to make documents more portable and consistent across execution engines https://quarto.org/docs/tools/rstudio.html
 
-wq_2022_original <- read_csv(here("data", "water_quality_gbl_2022.csv"))
+inco <- read_csv(here("data", "gsl_inco_agefreq.csv"))
 
+str(inco)
+
+print(inco)
+```
+
+```{r}
+#| label: explore data 
+#| echo: false
+#| warning: false
+#| message: false
+
+
+inco |>  
+  group_by(year) |>
+  summarize(agerng=max(age)-min(age)+1,
+            agesobs=n()) 
+```
+
+```{r}
+#| label: plot data by year 
+#| echo: false
+#| warning: false
+#| message: false
+
+inco |>   
+  ggplot() +
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch))
 ```
 
 ## Quarto
