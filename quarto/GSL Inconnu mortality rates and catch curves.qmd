@@ -92,4 +92,53 @@ headtail(inco)
 ``` 
 
 
+```{r}
+#| label: plots to identify descending limb of catch curve 
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# From FishR Vignette - Catch Curve Estimates of Mortality, March 2, 2013, plot scatterplot of age vs log(10)Catch, this is the catch curve
+# From Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
+# In general, instantaneous mortality (Z) is only estimated from the slope of the “descending limb” of the catch curve
+# Use plots below to identify the “descending limb”
+
+
+inco |>   
+  ggplot() +
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = logcatch1)) +
+
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="log (Catch+1)",expand=expansion(mult=0.02))
+```
+
+
+```{r}
+#| label: creating new data frame with only ages on the descending limb 
+#| echo: false
+#| warning: false
+#| message: false
+
+
+inco_reduced <- inco |>
+  filter(!(year==1984 & age<10)) |>
+  filter(!(year==1995 & age<9)) |>
+  filter(!(year==2018 & age<8)) |>
+  filter(!(year==2019 & age<9)) |>
+  filter(!(year==2020 & age<9)) |>
+  filter(!(year==2021 & age<9)) |>
+  filter(!(year==2022 & age<8)) |>
+  filter(!(year==2023 & age<9)) |>
+
+print(inco_reduced)
+
+```
+
+
+
+
+
+
 The `echo: false` option disables the printing of code (only output is displayed).
