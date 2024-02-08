@@ -1,9 +1,48 @@
 ---
 title: "GSL Inconnu mortality rates and catch curves"
 author: "Chelsey Lumb"
+date: "`r Sys.Date()`"
 format: html
 editor: visual
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  # Do you need to add knitr to beginning of quarto file? It doesn't look like it from https://quarto.org/docs/tools/rstudio.html
+```
+
+```{r load packages, include=FALSE}
+library(tidyverse) # {purrr} and {stringr} part of tidyverse
+library(lubridate)
+library(stringr)
+library(janitor)
+library(here)
+library(readr)
+library(fs)        # tools to work with file-systems, a bit like {here}
+library(FSA)
+
+library(ggplot2)
+library(scales)    # for CG's histogram code for len freq, need function "percent_format" for y-axes
+library(forcats)   # to work with factors, like re-ordering panes created facet_grid()
+library(knitr)     # to use kable() function to format tables
+library(gt)        # to format tables
+library(viridis)   # colours better on plots for colour-blind people
+library(patchwork) # to make combined plots, like LKTR age frequency
+# library(quarto)    # to output to pdf ? Don't really need to output file or report for mort rate estimates
+```
+
+```{r}
+#| label: load data
+#| results: hide
+#| echo: false
+#| warning: false
+#| message: false
+#| include: false
+
+## recommend using the comment-based syntax (#|) vs. chunk options on the first line (e.g. ```{r, echo = FALSE}) to make documents more portable and consistent across execution engines https://quarto.org/docs/tools/rstudio.html
+
+wq_2022_original <- read_csv(here("data", "water_quality_gbl_2022.csv"))
+
+```
 
 ## Quarto
 
@@ -12,10 +51,6 @@ Quarto enables you to weave together content and executable code into a finished
 ## Running Code
 
 When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
 
 You can add options to executable code like this
 
