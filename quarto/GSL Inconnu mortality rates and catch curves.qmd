@@ -72,19 +72,24 @@ inco |>
   geom_point(aes(x = age, y = catch))
 ```
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-You can add options to executable code like this
 
 ```{r}
+#| label: data preparation 
 #| echo: false
-2 * 2
-```
+#| warning: false
+#| message: false
+
+
+# A catch curve plots log catch versus age, though in this case, because of the presence of zero catches for some ages, log catch plus 1 was used 
+# from Derek H. Ogle. 2023, April 24. Working with Multiple Catch Curves. https://fishr-core-team.github.io/fishR//blog/posts/2023-4-24_Multiple_CatchCurves.
+
+
+inco <- inco |>
+  mutate(catch1=catch+1,
+         logcatch1=log(catch1))
+headtail(inco)
+
+``` 
+
 
 The `echo: false` option disables the printing of code (only output is displayed).
