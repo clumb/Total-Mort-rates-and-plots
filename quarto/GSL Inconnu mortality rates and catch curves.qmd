@@ -10,7 +10,12 @@ editor: visual
 knitr::opts_chunk$set(echo = TRUE)  # Do you need to add knitr to beginning of quarto file? It doesn't look like it from https://quarto.org/docs/tools/rstudio.html
 ```
 
+
 ```{r load packages, include=FALSE}
+
+# Are all these packages necessary for mort rate calcs?
+# Maybe it doesn't matter how many packages loaded if don't conflict with eachother (same function names in diff packages)
+
 library(tidyverse) # {purrr} and {stringr} part of tidyverse
 library(lubridate)
 library(stringr)
@@ -27,8 +32,9 @@ library(knitr)     # to use kable() function to format tables
 library(gt)        # to format tables
 library(viridis)   # colours better on plots for colour-blind people
 library(patchwork) # to make combined plots, like LKTR age frequency
-# library(quarto)    # to output to pdf ? Don't really need to output file or report for mort rate estimates
+# library(quarto)  # to output to pdf ? Don't really need to output file or report for mort rate estimates
 ```
+
 
 ```{r}
 #| label: load data
@@ -40,6 +46,9 @@ library(patchwork) # to make combined plots, like LKTR age frequency
 
 ## recommend using the comment-based syntax (#|) vs. chunk options on the first line (e.g. ```{r, echo = FALSE}) to make documents more portable and consistent across execution engines https://quarto.org/docs/tools/rstudio.html
 
+
+# Should load raw data and tally catch by age in R
+
 inco <- read_csv(here("data", "gsl_inco_agefreq.csv"))
 
 str(inco)
@@ -47,12 +56,15 @@ str(inco)
 print(inco)
 ```
 
+# Load and look at summary of data, age range and number of observations of age by year
+
 ```{r}
 #| label: explore data 
 #| echo: false
 #| warning: false
 #| message: false
 
+# Add code to give me n total number of fish sampled per year, for mort rate table
 
 inco |>  
   group_by(year) |>
@@ -60,16 +72,32 @@ inco |>
             agesobs=n()) 
 ```
 
+
+# For each year, visually select years to include in descending limb
+Plot to check ages included in descending limb - should include the peak age, the age when fish have just become fully vulnerable to the gear, and the descending right limb
+
 ```{r}
-#| label: plot data by year 
+#| label: plot data by year, identify descending limb of catch curve 
 #| echo: false
 #| warning: false
 #| message: false
 
+# From FishR Vignette - Catch Curve Estimates of Mortality, March 2, 2013, plot scatterplot of age vs log(10)Catch (or catch?)
+# this is the catch curve
+
+# From Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
+# In general, instantaneous mortality (Z) is only estimated from the slope of the “descending limb” of the catch curve
+# Use plots below to identify the “descending limb”
+
+
 inco |>   
   ggplot() +
   facet_wrap(~ year) +
-  geom_point(aes(x = age, y = catch))
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
 ```
 
 
@@ -79,17 +107,20 @@ inco |>
 #| warning: false
 #| message: false
 
+# The step of creating logcatch not be required for ChapmanRobson function in FSA, seems transformation included in function 
+# because code uses catch not logcatch. Or maybe ChapmanRobson uses just catch because seems to be able to handle zeros (log of # zero not defined, so if using logcatch, would get error?)
+
 
 # A catch curve plots log catch versus age, though in this case, because of the presence of zero catches for some ages, log catch plus 1 was used 
 # from Derek H. Ogle. 2023, April 24. Working with Multiple Catch Curves. https://fishr-core-team.github.io/fishR//blog/posts/2023-4-24_Multiple_CatchCurves.
 
 
-inco <- inco |>
-  mutate(catch1=catch+1,
-         logcatch1=log(catch1))
-headtail(inco)
+# inco <- inco |>
+#  mutate(catch1=catch+1,
+#         logcatch1=log(catch1))
+# headtail(inco)
 
-``` 
+```
 
 
 ```{r}
@@ -98,22 +129,38 @@ headtail(inco)
 #| warning: false
 #| message: false
 
+# These plots aren't necessary now, because plotted with code above (age vs catch, rather than age vs logcatch)
 
-# From FishR Vignette - Catch Curve Estimates of Mortality, March 2, 2013, plot scatterplot of age vs log(10)Catch, this is the catch curve
 # From Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
 # In general, instantaneous mortality (Z) is only estimated from the slope of the “descending limb” of the catch curve
 # Use plots below to identify the “descending limb”
 
 
-inco |>   
-  ggplot() +
-  facet_wrap(~ year) +
-  geom_point(aes(x = age, y = logcatch1)) +
+# inco |>   
+#  ggplot() +
+#  facet_wrap(~ year) +
+#  geom_point(aes(x = age, y = logcatch1)) +
 
-  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
-  scale_y_continuous(name="log (Catch+1)",expand=expansion(mult=0.02))
+#  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+#  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
 ```
 
+
+# Create new data frame with only ages on the descending limb of catch curve
+The descending limb begins at the peak and represents ages of fish that are fully vulnerable to the gear (Ogle 2016))
+
+```
+inco_reduced <- inco |>
+  filter(!(year==1984 & age<11)) |>
+  filter(!(year==1995 & age<9)) |>
+  filter(!(year==2018 & age<8)) |>
+  filter(!(year==2019 & age<9)) |>
+  filter(!(year==2020 & age<9)) |>
+  filter(!(year==2021 & age<9)) |>
+  filter(!(year==2022 & age<8)) |>
+  filter(!(year==2023 & age<9))
+```
 
 ```{r}
 #| label: creating new data frame with only ages on the descending limb 
@@ -123,22 +170,149 @@ inco |>
 
 
 inco_reduced <- inco |>
-  filter(!(year==1984 & age<10)) |>
+  filter(!(year==1984 & age<11)) |>
   filter(!(year==1995 & age<9)) |>
   filter(!(year==2018 & age<8)) |>
   filter(!(year==2019 & age<9)) |>
   filter(!(year==2020 & age<9)) |>
   filter(!(year==2021 & age<9)) |>
   filter(!(year==2022 & age<8)) |>
-  filter(!(year==2023 & age<9)) |>
+  filter(!(year==2023 & age<9)) 
 
-print(inco_reduced)
+# print(inco_reduced)
+
+# inco_reduced
 
 ```
 
 
+# Plot to check ages included in reduced data frame, ages from peak + descending limb of catch curves
 
 
+```{r}
+#| label: plot descending limbs 
+#| echo: false
+#| warning: false
+#| message: false
 
 
-The `echo: false` option disables the printing of code (only output is displayed).
+ggplot(dat=inco_reduced,mapping=aes(x=age,y=catch)) +
+  geom_point(size=2) +
+  geom_line(alpha=0.1,linewidth=1.5) +
+  facet_wrap(~ year) +
+  theme_bw() + theme(legend.position="none")
+
+```
+
+```{r}
+#| label: split data frame by year for catch curve calculations 
+#| echo: false
+#| warning: false
+#| message: false
+
+## We don't need to use the split function to make lists of data by year, using a nested tibble worked better 
+## because I can call a year of data to the ChapmanRobson function using the years position (ie 1984 = 1, 1995=2...)
+
+
+# From Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
+# To use FSA catch curve functions for multiple groups of data, the reduced catch-at-age data frame must be split() into a list of separate data frames by year
+
+#inco_redsplit <- inco_reduced |>
+#  split(~year)
+
+#str(inco_redsplit)
+
+```
+
+# The key to using a datafile with multiple years of data is creating a nested tibble 
+Can specify year of data to use by giving the location of the data in the nested tibble (ie 1984 = 1, 1995 = 2, 2018 = 3...)
+From From R4EnviroDataScience class materials week_11_part_2_purrr.Rmd
+
+
+```{r}
+#| label: create nested tibble using year to be able to specify year of data to use in ChapmanRobson function
+#| echo: false
+#| warning: false
+#| message: false
+
+nested_inco_reduced <- inco_reduced %>% 
+  group_by(year) %>% 
+  nest()
+
+print(nested_inco_reduced)
+
+nested_inco_reduced$data
+
+```
+
+
+# Next, use FSA function chapmanRobson to return S, Z, Std Error and 95% CI - like in Mortality Rates chapter of Introductory Fisheries Analyses with R
+
+From R4EnviroDataScience class materials week_11_part_1_models.Rmd:
+Unfortunately the `lm()` function asks for the data at the end of the list of required info (instead of being the first 
+thing like most functions), this leads to errors when you try to apply the `lm()` in a pip workflow. Just like FSA.
+
+But there are ways around it. We can directly specify where the element coming from the pipe should go using the **"."** symbol. That approach can be used for any function in a pipe, most times it is not needed, but you can always use it.
+
+I couldn't get "." to work with incoccresults <- chapmanRobson(catch~age,data=".",ages2use=11:14)
+but I guess it doesn't matter because for ChapmanRobson function, need to give 3 arguments x~y,data,ages2use)
+Ages to use can differ by year, so makes it hard to automate catch curve calcs for multiple years?
+Could I use reduce data set with only catch from decending limb? Yes!! It worked!
+
+```{r}
+#| label: ChapmanRobson catch curve calculations 
+#| echo: false
+#| warning: false
+#| message: false
+
+
+incoccresults <- chapmanRobson(catch~age,data=nested_inco_reduced$data[[1]])
+summary(incoccresults)
+confint(incoccresults)
+
+incoccresults 
+```
+
+
+# Plot catch curves showing ages included in mortatliy rate estimates (filled circles)
+
+
+```{r}
+#| label: plot catch curves
+#| echo: false
+#| warning: false
+#| message: false
+
+plot(incoccresults) # this shows that the Chapman Robson function re-coded ages as required for the calculation (see plot)
+
+# this code is modified from Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
+
+
+ggplot() +
+  geom_point(dat=inco,mapping=aes(x=age,y=catch),
+             pch=21,size=2) +
+  geom_point(dat=inco_reduced,mapping=aes(x=age,y=catch),
+             pch=21,size=2,fill="black") +
+ # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
+ #            method=lm) +
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
+#                     aesthetics=c("color","fill")) +
+  facet_wrap(~year) +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        legend.position=c(1,1),
+        legend.justification=c(1.1,1.1),
+        legend.title=element_blank(),
+        legend.background=element_blank(),
+        strip.text=element_text(face="bold"))
+
+```
+
+
+### References
+
+Ogle,D.H. 2016. Introductory Fisheries Analyses with R. Boca Raton (FL): Chapman and Hall/CRC. Chapter 11, Mortality Rates; p. 203-219.
+
+Derek H. Ogle. 2023, April 24. Working with Multiple Catch Curves. https://fishr-core-team.github.io/fishR//blog/posts/2023-4-24_Multiple_CatchCurves.

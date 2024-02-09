@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Chelsey Lumb">
-<meta name="dcterms.date" content="2024-02-07">
+<meta name="dcterms.date" content="2024-02-09">
 
 <title>GSL Inconnu mortality rates and catch curves</title>
 <style>
@@ -64,7 +64,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 7, 2024</p>
+      <p class="date">February 9, 2024</p>
     </div>
   </div>
   
@@ -74,6 +74,8 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
+<section id="load-and-look-at-summary-of-data-age-range-and-number-of-observations-of-age-by-year" class="level1">
+<h1>Load and look at summary of data, age range and number of observations of age by year</h1>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 3
@@ -89,25 +91,222 @@ ul.task-list li input[type="checkbox"] {
 8  2023     10      10</code></pre>
 </div>
 </div>
+</section>
+<section id="for-each-year-visually-select-years-to-include-in-descending-limb" class="level1">
+<h1>For each year, visually select years to include in descending limb</h1>
+<p>Plot to check ages included in descending limb - should include the peak age, the age when fish have just become fully vulnerable to the gear, and the descending right limb</p>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="GSL-Inconnu-mortality-rates-and-catch-curves_files/figure-html/plot%20data%20by%20year-1.png" class="img-fluid" width="672"></p>
+<p><img src="GSL-Inconnu-mortality-rates-and-catch-curves_files/figure-html/plot%20data%20by%20year,%20identify%20descending%20limb%20of%20catch%20curve-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<section id="quarto" class="level2">
-<h2 class="anchored" data-anchor-id="quarto">Quarto</h2>
-<p>Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <a href="https://quarto.org" class="uri">https://quarto.org</a>.</p>
 </section>
-<section id="running-code" class="level2">
-<h2 class="anchored" data-anchor-id="running-code">Running Code</h2>
-<p>When you click the <strong>Render</strong> button a document will be generated that includes both content and the output of embedded code. You can embed code like this:</p>
-<p>You can add options to executable code like this</p>
+<section id="create-new-data-frame-with-only-ages-on-the-descending-limb-of-catch-curve" class="level1">
+<h1>Create new data frame with only ages on the descending limb of catch curve</h1>
+<p>The descending limb begins at the peak and represents ages of fish that are fully vulnerable to the gear (Ogle 2016))</p>
+<pre><code>inco_reduced &lt;- inco |&gt;
+  filter(!(year==1984 &amp; age&lt;11)) |&gt;
+  filter(!(year==1995 &amp; age&lt;9)) |&gt;
+  filter(!(year==2018 &amp; age&lt;8)) |&gt;
+  filter(!(year==2019 &amp; age&lt;9)) |&gt;
+  filter(!(year==2020 &amp; age&lt;9)) |&gt;
+  filter(!(year==2021 &amp; age&lt;9)) |&gt;
+  filter(!(year==2022 &amp; age&lt;8)) |&gt;
+  filter(!(year==2023 &amp; age&lt;9))</code></pre>
+</section>
+<section id="plot-to-check-ages-included-in-reduced-data-frame-ages-from-peak-descending-limb-of-catch-curves" class="level1">
+<h1>Plot to check ages included in reduced data frame, ages from peak + descending limb of catch curves</h1>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="GSL-Inconnu-mortality-rates-and-catch-curves_files/figure-html/plot%20descending%20limbs-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="the-key-to-using-a-datafile-with-multiple-years-of-data-is-creating-a-nested-tibble" class="level1">
+<h1>The key to using a datafile with multiple years of data is creating a nested tibble</h1>
+<p>Can specify year of data to use by giving the location of the data in the nested tibble (ie 1984 = 1, 1995 = 2, 2018 = 3…) From From R4EnviroDataScience class materials week_11_part_2_purrr.Rmd</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 4</code></pre>
+<pre><code># A tibble: 8 × 2
+# Groups:   year [8]
+   year data             
+  &lt;dbl&gt; &lt;list&gt;           
+1  1984 &lt;tibble [5 × 2]&gt; 
+2  1995 &lt;tibble [7 × 2]&gt; 
+3  2018 &lt;tibble [10 × 2]&gt;
+4  2019 &lt;tibble [7 × 2]&gt; 
+5  2020 &lt;tibble [8 × 2]&gt; 
+6  2021 &lt;tibble [9 × 2]&gt; 
+7  2022 &lt;tibble [8 × 2]&gt; 
+8  2023 &lt;tibble [7 × 2]&gt; </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+# A tibble: 5 × 2
+    age catch
+  &lt;dbl&gt; &lt;dbl&gt;
+1    11    19
+2    12    17
+3    13     2
+4    14     2
+5    15     0
+
+[[2]]
+# A tibble: 7 × 2
+    age catch
+  &lt;dbl&gt; &lt;dbl&gt;
+1     9    59
+2    10    52
+3    11     4
+4    12     1
+5    13     1
+6    14     1
+7    15     0
+
+[[3]]
+# A tibble: 10 × 2
+     age catch
+   &lt;dbl&gt; &lt;dbl&gt;
+ 1     8    74
+ 2     9    56
+ 3    10    29
+ 4    11    16
+ 5    12     6
+ 6    13     2
+ 7    14     1
+ 8    15     0
+ 9    16     0
+10    17     1
+
+[[4]]
+# A tibble: 7 × 2
+    age catch
+  &lt;dbl&gt; &lt;dbl&gt;
+1     9    76
+2    10    28
+3    11     8
+4    12     1
+5    13     1
+6    14     0
+7    15     0
+
+[[5]]
+# A tibble: 8 × 2
+    age catch
+  &lt;dbl&gt; &lt;dbl&gt;
+1     9    59
+2    10    30
+3    11     7
+4    12     4
+5    13     4
+6    14     2
+7    15     0
+8    16     1
+
+[[6]]
+# A tibble: 9 × 2
+    age catch
+  &lt;dbl&gt; &lt;dbl&gt;
+1     9    71
+2    10    15
+3    11    18
+4    12     7
+5    13     1
+6    14     0
+7    15     0
+8    16     0
+9    17     1
+
+[[7]]
+# A tibble: 8 × 2
+    age catch
+  &lt;dbl&gt; &lt;dbl&gt;
+1     8    94
+2     9    17
+3    10    49
+4    11     4
+5    12     5
+6    13     3
+7    14     1
+8    15     0
+
+[[8]]
+# A tibble: 7 × 2
+    age catch
+  &lt;dbl&gt; &lt;dbl&gt;
+1     9    85
+2    10    13
+3    11    13
+4    12     2
+5    13     1
+6    14     0
+7    15     0</code></pre>
 </div>
 </div>
-<p>The <code>echo: false</code> option disables the printing of code (only output is displayed).</p>
+</section>
+<section id="next-use-fsa-function-chapmanrobson-to-return-s-z-std-error-and-95-ci---like-in-mortality-rates-chapter-of-introductory-fisheries-analyses-with-r" class="level1">
+<h1>Next, use FSA function chapmanRobson to return S, Z, Std Error and 95% CI - like in Mortality Rates chapter of Introductory Fisheries Analyses with R</h1>
+<p>From R4EnviroDataScience class materials week_11_part_1_models.Rmd: Unfortunately the <code>lm()</code> function asks for the data at the end of the list of required info (instead of being the first thing like most functions), this leads to errors when you try to apply the <code>lm()</code> in a pip workflow. Just like FSA.</p>
+<p>But there are ways around it. We can directly specify where the element coming from the pipe should go using the <strong>“.”</strong> symbol. That approach can be used for any function in a pipe, most times it is not needed, but you can always use it.</p>
+<p>I couldn’t get “.” to work with incoccresults &lt;- chapmanRobson(catch~age,data=“.”,ages2use=11:14) but I guess it doesn’t matter because for ChapmanRobson function, need to give 3 arguments x~y,data,ages2use) Ages to use can differ by year, so makes it hard to automate catch curve calcs for multiple years? Could I use reduce data set with only catch from decending limb? Yes!! It worked!</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>    Estimate Std. Error
+S 40.9090909  6.0983672
+Z  0.8737692  0.2500418</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     95% LCI   95% UCI
+S 28.9565108 52.861671
+Z  0.3836963  1.363842</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$age
+[1] 11 12 13 14 15
+
+$catch
+[1] 19 17  2  2  0
+
+$age.e
+[1] 11 12 13 14 15
+
+$catch.e
+[1] 19 17  2  2  0
+
+$age.r
+[1] 0 1 2 3 4
+
+$n
+[1] 40
+
+$T
+[1] 27
+
+$est
+    Estimate Std. Error
+S 40.9090909  6.0983672
+Z  0.8737692  0.2500418
+
+attr(,"class")
+[1] "chapmanRobson"</code></pre>
+</div>
+</div>
+</section>
+<section id="plot-catch-curves-showing-ages-included-in-mortatliy-rate-estimates-filled-circles" class="level1">
+<h1>Plot catch curves showing ages included in mortatliy rate estimates (filled circles)</h1>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="GSL-Inconnu-mortality-rates-and-catch-curves_files/figure-html/plot%20catch%20curves-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="GSL-Inconnu-mortality-rates-and-catch-curves_files/figure-html/plot%20catch%20curves-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<section id="references" class="level3">
+<h3 class="anchored" data-anchor-id="references">References</h3>
+<p>Ogle,D.H. 2016. Introductory Fisheries Analyses with R. Boca Raton (FL): Chapman and Hall/CRC. Chapter 11, Mortality Rates; p.&nbsp;203-219.</p>
+<p>Derek H. Ogle. 2023, April 24. Working with Multiple Catch Curves. https://fishr-core-team.github.io/fishR//blog/posts/2023-4-24_Multiple_CatchCurves.</p>
+</section>
 </section>
 
 </main>
