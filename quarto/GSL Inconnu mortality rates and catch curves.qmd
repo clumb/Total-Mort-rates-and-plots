@@ -266,7 +266,7 @@ Could I use reduce data set with only catch from decending limb? Yes!! It worked
 #| message: false
 
 
-incoccresults <- chapmanRobson(catch~age,data=nested_inco_reduced$data[[1]])
+incoccresults <- chapmanRobson(catch~age,data=nested_inco_reduced$data[[8]]) #data frame 8 is year 2023
 summary(incoccresults)
 confint(incoccresults)
 
@@ -287,8 +287,7 @@ plot(incoccresults) # this shows that the Chapman Robson function re-coded ages 
 
 # this code is modified from Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
 
-
-ggplot() +
+  ggplot() +
   geom_point(dat=inco,mapping=aes(x=age,y=catch),
              pch=21,size=2) +
   geom_point(dat=inco_reduced,mapping=aes(x=age,y=catch),
