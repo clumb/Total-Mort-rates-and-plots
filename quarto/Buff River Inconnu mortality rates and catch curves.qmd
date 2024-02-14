@@ -1,0 +1,53 @@
+---
+title: "Buff River Inconnu mortality rates and catch curves"
+author: "Chelsey Lumb"
+format: html
+date: "`r Sys.Date()`"
+editor: visual
+---
+
+Created new quarto file for Buffalo River Inconnu mortality rate estimates because added some data prep/wrangling code to get data file ready
+
+```{r}
+#| label: note - don't need knitr code chunk at the beginning of quarto file to be able to render 
+```
+
+
+```{r}
+#| label: load packages
+#| include: false
+
+library(tidyverse) #ggplot2 and purrr part of tidyverse
+library(janitor)
+library(here)
+library(fs) # Series of tools to work with file-systems, a bit like {here}
+
+library (FSA)
+library(knitr)     # to use kable() function to format tables
+library(gt)        # to format tables
+```
+
+
+```{r}
+#| label: load data
+#| include: false
+
+
+# Should load raw data and tally catch by age in R
+
+inco <- read_csv(here("data", "buffriv_inco_agefreq.csv"))
+
+str(inco)
+
+print(inco)
+```
+
+
+```{r}
+#| label: data prep
+#| include: false
+
+
+
+```
+

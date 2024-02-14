@@ -44,7 +44,7 @@ library(patchwork) # to make combined plots, like LKTR age frequency
 #| message: false
 #| include: false
 
-## recommend using the comment-based syntax (#|) vs. chunk options on the first line (e.g. ```{r, echo = FALSE}) to make documents more portable and consistent across execution engines https://quarto.org/docs/tools/rstudio.html
+## recommend using the comment-based syntax (#|) vs. chunk options on the first line (e.g. {r, load packages, include=FALSE}) to make documents more portable and consistent across execution engines https://quarto.org/docs/tools/rstudio.html
 
 
 # Should load raw data and tally catch by age in R
