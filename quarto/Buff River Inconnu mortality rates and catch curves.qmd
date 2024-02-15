@@ -10,6 +10,7 @@ Created new quarto file for Buffalo River Inconnu mortality rate estimates becau
 
 ```{r}
 #| label: note - don't need knitr code chunk at the beginning of quarto file to be able to render 
+#| include: false
 ```
 
 
@@ -25,29 +26,81 @@ library(fs) # Series of tools to work with file-systems, a bit like {here}
 library (FSA)
 library(knitr)     # to use kable() function to format tables
 library(gt)        # to format tables
+library(readr)     # to save csv data files to data folder 
 ```
 
+# Load data and look at data file and data types for wrangling
 
 ```{r}
 #| label: load data
 #| include: false
 
+# Should load raw data and use tally to count catch by year and age in R
+# Examples in R4EnviroSci -> week_10_part_1_counting.Rmd
 
-# Should load raw data and tally catch by age in R
+inco_buffriv_original <- read_csv(here("data", "buffriv_inco_agefreq.csv"))
 
-inco <- read_csv(here("data", "buffriv_inco_agefreq.csv"))
+str(inco_buffriv_original)
 
-str(inco)
-
-print(inco)
+print(inco_buffriv_original)
 ```
 
+# Prepare data for mortality rate estimates
+1) pivot longer
+2) reorder columns
+3) arrange by year, from earliest to latest (1947 to 2022)
+4) remove years with no ages, 1995 and 2011 
+2) replace NAs with zeros
+3) pivot wider again to check catch by year and age matches data in excel (wrangling done right)
 
 ```{r}
 #| label: data prep
 #| include: false
-
-
-
 ```
 
+
+```{r}
+# inco_data <- inco_buffriv_original |>   
+#  clean_names() # to make variable names have lower case letter
+
+# also, not sure if it would help with later code, but clean_name adds x before year to make variable name dbl not numeric
+
+inco <- inco_buffriv_original |> 
+  pivot_longer(!age,
+               names_to = "year", 
+               values_to = "catch") |> 
+  select(year, age, catch) |>                                  # reorder columns so year, age, catch
+  arrange(year) |>                                             # arrange catch data by year
+  filter(year != 1995 & year != 2011) |>                       # filter out years with no age data != 1995 or 2011
+  mutate(catch = ifelse(is.na(catch), 0, catch))               # replace nas in catch with zeros
+  
+#  print(inco)
+
+
+summary_tbl <- inco %>% 
+  pivot_wider(names_from = year, values_from = catch, values_fill = 0) # pivot wider, check data right, matches tbl in excel
+
+
+# readr::write_csv(summary_tbl, here("data", "inco_buffriv_agefreq.csv"))    # save final buff river age freq data file 
+```
+ 
+ 
+```{r}
+inco |>  
+  group_by(year) |>
+  summarize(agerng=max(age)-min(age)+1,
+            agesobs=n())
+
+
+inco |>   
+ filter(year == 1977) |>   
+  
+  ggplot() +
+#  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+```
+ 
+ 
