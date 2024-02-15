@@ -269,9 +269,6 @@ ggplot(mapping=aes(x=age,y=catch)) +
 
 
 ```
- 
-```{r}
 
-```
  
  
