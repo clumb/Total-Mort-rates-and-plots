@@ -38,7 +38,7 @@ library(readr)     # to save csv data files to data folder
 # Should load raw data and use tally to count catch by year and age in R
 # Examples in R4EnviroSci -> week_10_part_1_counting.Rmd
 
-inco_buffriv_original <- read_csv(here("data", "buffriv_inco_agefreq.csv"))
+inco_buffriv_original <- read_csv(here("data", "buffriv_inco_catchage.csv"))
 
 str(inco_buffriv_original)
 
@@ -53,17 +53,10 @@ print(inco_buffriv_original)
 2) replace NAs with zeros
 3) pivot wider again to check catch by year and age matches data in excel (wrangling done right)
 
+
 ```{r}
 #| label: data prep
 #| include: false
-```
-
-
-```{r}
-# inco_data <- inco_buffriv_original |>   
-#  clean_names() # to make variable names have lower case letter
-
-# also, not sure if it would help with later code, but clean_name adds x before year to make variable name dbl not numeric
 
 inco <- inco_buffriv_original |> 
   pivot_longer(!age,
@@ -78,7 +71,9 @@ inco <- inco_buffriv_original |>
 
 
 summary_tbl <- inco %>% 
-  pivot_wider(names_from = year, values_from = catch, values_fill = 0) # pivot wider, check data right, matches tbl in excel
+  pivot_wider(names_from = year, values_from = catch, values_fill = 0) 
+
+# pivot wider, check data right, matches tbl in excel
 
 
 # readr::write_csv(summary_tbl, here("data", "inco_buffriv_agefreq.csv"))    # save final buff river age freq data file 
@@ -86,21 +81,197 @@ summary_tbl <- inco %>%
  
  
 ```{r}
-inco |>  
-  group_by(year) |>
-  summarize(agerng=max(age)-min(age)+1,
-            agesobs=n())
+#| label: plot data by year, identify descending limb of catch curve 
+#| echo: false
+#| warning: false
+#| message: false
 
-
-inco |>   
- filter(year == 1977) |>   
+# Add code to get n - number of samples each year for table
   
-  ggplot() +
-#  facet_wrap(~ year) +
+inco |>   
+
+    filter(year >= 1947 & year <=1979) |>   
+ 
+    ggplot() +
+  
+  facet_wrap(~ year) +
   geom_point(aes(x = age, y = catch)) +
   
   scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
   scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
+
+inco |>   
+
+    filter(year >= 1980 & year <=1989) |>   
+ 
+    ggplot() +
+  
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
+
+inco |>   
+
+    filter(year >= 1990 & year <=1999) |>   
+ 
+    ggplot() +
+  
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
+
+inco |>   
+
+    filter(year >= 2000 & year <=2009) |>   
+ 
+    ggplot() +
+  
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
+
+inco |>   
+
+    filter(year >= 2010 & year <=2019) |>   
+ 
+    ggplot() +
+  
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
+
+inco |>   
+
+    filter(year >= 2020 & year <=2022) |>   
+ 
+    ggplot() +
+  
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+```
+ 
+ 
+```{r}
+#| label: create data file with peak catch and descending limb for each year - code from chatGPT
+#| include: false
+
+
+# Find the age with the highest catch for each year
+max_catch_ages <- inco %>%
+  group_by(year) %>%
+  summarise(max_age = age[which.max(catch)])
+
+# Create a list to store the subsetted data for each year
+subset_data_list <- list()
+
+# Loop through each year and subset the data
+for (i in 1:nrow(max_catch_ages)) {
+  year <- max_catch_ages$year[i]
+  max_catch_age <- max_catch_ages$max_age[i]
+  subset_data_list[[i]] <- inco[inco$year == year & inco$age >= max_catch_age, ]
+}
+
+# Combine the subsetted data for all years into a single data frame
+subset_data <- do.call(rbind, subset_data_list)
+
+# Print the subsetted data
+print(subset_data)
+```
+ 
+# Plot to check ages included in reduced data frame, ages from peak + descending limb of catch curves
+
+```{r}
+#| label: plot descending limbs 
+#| echo: false
+#| warning: false
+#| message: false
+
+subset_data |>  
+
+filter(year >= 1947 & year <=1979) |>   
+
+ggplot(mapping=aes(x=age,y=catch)) +
+  geom_point(size=2) +
+  geom_line(alpha=0.1,linewidth=1.5) +
+  facet_wrap(~ year) +
+  theme_bw() + theme(legend.position="none")
+
+
+subset_data |>  
+
+filter(year >= 1980 & year <=1989) |>   
+
+ggplot(mapping=aes(x=age,y=catch)) +
+  geom_point(size=2) +
+  geom_line(alpha=0.1,linewidth=1.5) +
+  facet_wrap(~ year) +
+  theme_bw() + theme(legend.position="none")
+
+
+subset_data |>  
+
+filter(year >= 1990 & year <=1999) |>   
+
+ggplot(mapping=aes(x=age,y=catch)) +
+  geom_point(size=2) +
+  geom_line(alpha=0.1,linewidth=1.5) +
+  facet_wrap(~ year) +
+  theme_bw() + theme(legend.position="none")
+
+
+subset_data |>  
+
+filter(year >= 2000 & year <=2009) |>   
+
+ggplot(mapping=aes(x=age,y=catch)) +
+  geom_point(size=2) +
+  geom_line(alpha=0.1,linewidth=1.5) +
+  facet_wrap(~ year) +
+  theme_bw() + theme(legend.position="none")
+
+
+subset_data |>  
+
+filter(year >= 2010 & year <=2019) |>   
+
+ggplot(mapping=aes(x=age,y=catch)) +
+  geom_point(size=2) +
+  geom_line(alpha=0.1,linewidth=1.5) +
+  facet_wrap(~ year) +
+  theme_bw() + theme(legend.position="none")
+
+
+subset_data |>  
+
+filter(year >= 2020 & year <=2022) |>   
+
+ggplot(mapping=aes(x=age,y=catch)) +
+  geom_point(size=2) +
+  geom_line(alpha=0.1,linewidth=1.5) +
+  facet_wrap(~ year) +
+  theme_bw() + theme(legend.position="none")
+
+
+```
+ 
+```{r}
+
 ```
  
  
