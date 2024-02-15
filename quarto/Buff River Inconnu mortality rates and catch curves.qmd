@@ -13,7 +13,6 @@ Created new quarto file for Buffalo River Inconnu mortality rate estimates becau
 #| include: false
 ```
 
-
 ```{r}
 #| label: load packages
 #| include: false
@@ -29,14 +28,16 @@ library(gt)        # to format tables
 library(readr)     # to save csv data files to data folder 
 ```
 
-# Load data and look at data file and data types for wrangling
 
 ```{r}
 #| label: load data
 #| include: false
 
+# Load data and look at data file and data types for wrangling
+
 # Should load raw data and use tally to count catch by year and age in R
 # Examples in R4EnviroSci -> week_10_part_1_counting.Rmd
+
 
 inco_buffriv_original <- read_csv(here("data", "buffriv_inco_catchage.csv"))
 
@@ -46,17 +47,18 @@ print(inco_buffriv_original)
 ```
 
 # Prepare data for mortality rate estimates
-1) pivot longer
-2) reorder columns
-3) arrange by year, from earliest to latest (1947 to 2022)
-4) remove years with no ages, 1995 and 2011 
-2) replace NAs with zeros
-3) pivot wider again to check catch by year and age matches data in excel (wrangling done right)
 
+1)  pivot longer
+2)  reorder columns
+3)  arrange by year, from earliest to latest (1947 to 2022)
+4)  remove years with no ages, 1995 and 2011
+5)  replace NAs with zeros
+6)  pivot wider again to check catch by year and age matches data in excel (wrangling done right)
 
 ```{r}
 #| label: data prep
 #| include: false
+#|
 
 inco <- inco_buffriv_original |> 
   pivot_longer(!age,
@@ -78,8 +80,11 @@ summary_tbl <- inco %>%
 
 # readr::write_csv(summary_tbl, here("data", "inco_buffriv_agefreq.csv"))    # save final buff river age freq data file 
 ```
- 
- 
+
+
+# Plot data by year, identify descending limb of catch curve 
+
+
 ```{r}
 #| label: plot data by year, identify descending limb of catch curve 
 #| echo: false
@@ -165,8 +170,8 @@ inco |>
   scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
   scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
 ```
- 
- 
+
+
 ```{r}
 #| label: create data file with peak catch and descending limb for each year - code from chatGPT
 #| include: false
@@ -193,7 +198,7 @@ subset_data <- do.call(rbind, subset_data_list)
 # Print the subsetted data
 print(subset_data)
 ```
- 
+
 # Plot to check ages included in reduced data frame, ages from peak + descending limb of catch curves
 
 ```{r}
@@ -267,8 +272,4 @@ ggplot(mapping=aes(x=age,y=catch)) +
   facet_wrap(~ year) +
   theme_bw() + theme(legend.position="none")
 
-
 ```
-
- 
- 
