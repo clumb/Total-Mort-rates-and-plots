@@ -17,10 +17,10 @@ Created new quarto file for Buffalo River Inconnu mortality rate estimates becau
 #| label: load packages
 #| include: false
 
-library(tidyverse) #ggplot2 and purrr part of tidyverse
+library(tidyverse) # ggplot2 and purrr part of tidyverse
 library(janitor)
 library(here)
-library(fs) # Series of tools to work with file-systems, a bit like {here}
+library(fs)        # tools to work with file-systems, a bit like {here}
 
 library (FSA)
 library(knitr)     # to use kable() function to format tables
@@ -273,3 +273,148 @@ ggplot(mapping=aes(x=age,y=catch)) +
   theme_bw() + theme(legend.position="none")
 
 ```
+
+
+```{r}
+#| label: create nested tibble using year to cyle through each year of data to use in ChapmanRobson function
+#| echo: false
+#| warning: false
+#| message: false
+
+nested_inco_reduced <- subset_data %>% 
+  group_by(year) %>% 
+  nest()
+
+print(nested_inco_reduced)
+
+nested_inco_reduced$data[[1]]
+
+```
+
+
+```{r}
+#| label: ChapmanRobson catch curve calculations individually by year, to check results from pmap
+#| echo: false
+#| warning: false
+#| message: false
+
+
+incoccresults <- chapmanRobson(catch~age,data=nested_inco_reduced$data[[1]]) # data frame 1 is year 1947
+summary(incoccresults)
+confint(incoccresults)
+
+incoccresults 
+```
+
+
+```{r}
+#| label: Use pmap to iterate throuh ChapmanRobson catch curve calculations by year
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# using nested tibble and 'mutate', make a column containing cr_results for each year, name new column `model`
+cr_results <- subset_data %>% 
+  group_by(year) %>% 
+  nest() %>% 
+  mutate(model = pmap(list(data),   # tell pmap what element to look at in the list provide in the line above (only one                                         element in list = data)
+            
+                      ~ chapmanRobson(catch~age,data = ..1 ) # tell pmap what to do with data using ~   data = ..1 because                                                                place in list gave pmap
+                      )
+         )
+
+cr_results$model[[1]]      # pmap worked! The results for [[1]] match results calculated individually for 1947
+confint(cr_results$model[[1]])    # using 'confint' worked to get confidence intervals for S and Z! 
+
+# From https://rdrr.io/cran/FSA/man/chapmanRobson.html, Value - list of model output that is saved, including 
+# est A 2x2 matrix that contains the estimates and standard errors for S and Z
+
+cr_results$model[[1]]$est[1] # this gives 1947 estimate for S (est position[1]), if use $est, get S, Z and Std. Errors (df)
+
+cr_results$model[[1]]$n # this gives the number of ages included in the 1947 estimates of S and Z
+
+confint(cr_results$model[[1]]) # this give CIs for S and Z for 1947
+
+confint(cr_results$model[[1]],parm="Z")   # this give CIs for Z only for 1947, but I douln't pull out just Z 95% LCI
+        
+res <- c(coef(cr_results$model[[1]]),confint(cr_results$model[[1]],parm="S"),confint(cr_results$model[[1]],parm="Z"))
+names(res) <- c("S","Z","S.LCI","S.UCI","Z.LCI","Z.UCI")
+res[c(1,3,4,2,5,6)]       # worked to pull out S, Z and confidence intervals for 1947!
+
+# this code gets Z and S from values saved in model output - it works, but it's easier to get Z and S and CIs in one tibble
+
+# cr_models_and_results <- cr_results %>%
+#  mutate(survival = pmap_dbl(list(model),
+#                       ~ round((..1)$est[1], digits = 2)),  # (..1) is place in the list on the line above to use, model,                                                                est is the element in the list `model`, I think, and                                                                       est[1] is the element and the position where S is stored   
+#         Z = pmap_dbl(list(model),
+#                         ~ round((..1)$est[2], digits = 2)),  # est[2] is the element and the position where Z is stored
+#                      
+#         n = pmap_dbl(list(model),
+#                         ~ (..1)$n),         # number of ages included in the peak + descending limb used to est S and Z  
+#         )
+ 
+# this code uses the FSA::ChapmanRobson functions summary and confint to get estimates of Z and S and CIs in one tibble
+
+cr_results_and_cis <- cr_results %>%
+  mutate(results = pmap(list(model), 
+                     ~ summary(..1)),
+         cis = pmap(list(model), 
+                     ~ confint(..1))) 
+
+est_and_cis <- cr_results_and_cis %>%
+  mutate(z = pmap(list(results), 
+                     ~ round((..1)[c(2)], digits = 2)), 
+         
+         z_95LCI = pmap(list(cis), 
+                     ~ round((..1)[c(2)], digits = 2)),
+         
+         z_95UCI = pmap(list(cis), 
+                     ~ round((..1)[c(4)], digits = 2)), 
+    
+         s = pmap(list(results), 
+                     ~ round((..1)[c(1)], digits = 2)),
+    
+         s_95LCI = pmap(list(cis), 
+                     ~ round((..1)[c(1)], digits = 2)),
+  
+         s_95UCI = pmap(list(cis), 
+                     ~ round((..1)[c(3)], digits = 2)) 
+         
+           ) 
+     
+
+```
+
+# Plot catch curves showing ages included in mortatliy rate estimates (filled circles)
+
+```{r}
+#| label: plot catch curves
+#| echo: false
+#| warning: false
+#| message: false
+
+# this code is modified from Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
+
+  ggplot() +
+  geom_point(dat=inco,mapping=aes(x=age,y=catch),
+             pch=21,size=2) +
+  geom_point(dat=subset_data,mapping=aes(x=age,y=catch),
+             pch=21,size=2,fill="black") +
+ # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
+ #            method=lm) +
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
+#                     aesthetics=c("color","fill")) +
+  facet_wrap(~year) +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        legend.position=c(1,1),
+        legend.justification=c(1.1,1.1),
+        legend.title=element_blank(),
+        legend.background=element_blank(),
+        strip.text=element_text(face="bold"))
+
+```
+

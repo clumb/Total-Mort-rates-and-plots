@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Chelsey Lumb">
-<meta name="dcterms.date" content="2024-02-15">
+<meta name="dcterms.date" content="2024-02-16">
 
 <title>Buff River Inconnu mortality rates and catch curves</title>
 <style>
@@ -64,7 +64,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 15, 2024</p>
+      <p class="date">February 16, 2024</p>
     </div>
   </div>
   
@@ -75,9 +75,6 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 <p>Created new quarto file for Buffalo River Inconnu mortality rate estimates because added some data prep/wrangling code to get data file ready</p>
-<section id="load-data-and-look-at-data-file-and-data-types-for-wrangling" class="level1">
-<h1>Load data and look at data file and data types for wrangling</h1>
-</section>
 <section id="prepare-data-for-mortality-rate-estimates" class="level1">
 <h1>Prepare data for mortality rate estimates</h1>
 <ol type="1">
@@ -88,6 +85,9 @@ ul.task-list li input[type="checkbox"] {
 <li>replace NAs with zeros</li>
 <li>pivot wider again to check catch by year and age matches data in excel (wrangling done right)</li>
 </ol>
+</section>
+<section id="plot-data-by-year-identify-descending-limb-of-catch-curve" class="level1">
+<h1>Plot data by year, identify descending limb of catch curve</h1>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="Buff-River-Inconnu-mortality-rates-and-catch-curves_files/figure-html/plot%20data%20by%20year,%20identify%20descending%20limb%20of%20catch%20curve-1.png" class="img-fluid" width="672"></p>
@@ -129,6 +129,152 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="cell-output-display">
 <p><img src="Buff-River-Inconnu-mortality-rates-and-catch-curves_files/figure-html/plot%20descending%20limbs-6.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 38 × 2
+# Groups:   year [38]
+   year  data             
+   &lt;chr&gt; &lt;list&gt;           
+ 1 1947  &lt;tibble [16 × 2]&gt;
+ 2 1948  &lt;tibble [16 × 2]&gt;
+ 3 1955  &lt;tibble [18 × 2]&gt;
+ 4 1956  &lt;tibble [21 × 2]&gt;
+ 5 1976  &lt;tibble [19 × 2]&gt;
+ 6 1977  &lt;tibble [18 × 2]&gt;
+ 7 1978  &lt;tibble [19 × 2]&gt;
+ 8 1979  &lt;tibble [18 × 2]&gt;
+ 9 1980  &lt;tibble [19 × 2]&gt;
+10 1981  &lt;tibble [18 × 2]&gt;
+# ℹ 28 more rows</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 16 × 2
+     age catch
+   &lt;dbl&gt; &lt;dbl&gt;
+ 1    11    79
+ 2    12    41
+ 3    13     0
+ 4    14    21
+ 5    15    11
+ 6    16     0
+ 7    17     3
+ 8    18     1
+ 9    19     1
+10    20     0
+11    21     3
+12    22     2
+13    23     0
+14    24     0
+15    25     0
+16    26     0</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>    Estimate Std. Error
+S 59.1370558 2.47969577
+Z  0.5235877 0.08723776</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     95% LCI    95% UCI
+S 54.2769414 63.9971702
+Z  0.3526049  0.6945706</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$age
+ [1] 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+
+$catch
+ [1] 79 41  0 21 11  0  3  1  1  0  3  2  0  0  0  0
+
+$age.e
+ [1] 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+
+$catch.e
+ [1] 79 41  0 21 11  0  3  1  1  0  3  2  0  0  0  0
+
+$age.r
+ [1]  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+
+$n
+[1] 162
+
+$T
+[1] 233
+
+$est
+    Estimate Std. Error
+S 59.1370558 2.47969577
+Z  0.5235877 0.08723776
+
+attr(,"class")
+[1] "chapmanRobson"</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>$age
+ [1] 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+
+$catch
+ [1] 79 41  0 21 11  0  3  1  1  0  3  2  0  0  0  0
+
+$age.e
+ [1] 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+
+$catch.e
+ [1] 79 41  0 21 11  0  3  1  1  0  3  2  0  0  0  0
+
+$age.r
+ [1]  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+
+$n
+[1] 162
+
+$T
+[1] 233
+
+$est
+    Estimate Std. Error
+S 59.1370558 2.47969577
+Z  0.5235877 0.08723776
+
+attr(,"class")
+[1] "chapmanRobson"</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     95% LCI    95% UCI
+S 54.2769414 63.9971702
+Z  0.3526049  0.6945706</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 59.13706</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 162</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     95% LCI    95% UCI
+S 54.2769414 63.9971702
+Z  0.3526049  0.6945706</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    95% LCI   95% UCI
+Z 0.3526049 0.6945706</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         S      S.LCI      S.UCI          Z      Z.LCI      Z.UCI 
+59.1370558 54.2769414 63.9971702  0.5235877  0.3526049  0.6945706 </code></pre>
+</div>
+</div>
+</section>
+<section id="plot-catch-curves-showing-ages-included-in-mortatliy-rate-estimates-filled-circles" class="level1">
+<h1>Plot catch curves showing ages included in mortatliy rate estimates (filled circles)</h1>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="Buff-River-Inconnu-mortality-rates-and-catch-curves_files/figure-html/plot%20catch%20curves-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
