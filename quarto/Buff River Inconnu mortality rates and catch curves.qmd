@@ -299,11 +299,11 @@ nested_inco_reduced$data[[1]]
 #| message: false
 
 
-incoccresults <- chapmanRobson(catch~age,data=nested_inco_reduced$data[[1]]) # data frame 1 is year 1947
+incoccresults <- chapmanRobson(catch~age,data=nested_inco_reduced$data[[38]]) # data frame 1 is year 1947, 38 is 2022
 summary(incoccresults)
 confint(incoccresults)
 
-incoccresults 
+# incoccresults 
 ```
 
 
@@ -382,9 +382,25 @@ est_and_cis <- cr_results_and_cis %>%
                      ~ round((..1)[c(3)], digits = 2)) 
          
            ) 
-     
 
 ```
+
+
+```{r}
+#| label: unnest tibble with data, model results, and ests of Z, S and CIs, to create a tibble to save with only ests and CIs
+#| echo: false
+#| warning: false
+#| message: false
+
+
+est_and_cis_b <- est_and_cis %>%       # need to ungroup the data, or R won't let you just select only `plot` and `filename` from tibble
+  ungroup() %>%       # if we don't ungroup the data, or R will make you take species and year too, or the data doesn't make sense 
+  select(year, z, z_95LCI, z_95UCI, s, s_95LCI, s_95UCI)
+  
+readr::write_csv(est_and_cis_b, here("results", "buffriv_cr_mort.csv"))               
+
+```
+
 
 # Plot catch curves showing ages included in mortatliy rate estimates (filled circles)
 
@@ -396,10 +412,14 @@ est_and_cis <- cr_results_and_cis %>%
 
 # this code is modified from Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
 
-  ggplot() +
-  geom_point(dat=inco,mapping=aes(x=age,y=catch),
+inco_filtered <- subset(inco, year >= 1947 & year <= 1979) 
+   
+subset_data_filtered <- subset(subset_data, year >= 1947 & year <= 1979)   
+
+ggplot() +
+  geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
              pch=21,size=2) +
-  geom_point(dat=subset_data,mapping=aes(x=age,y=catch),
+  geom_point(dat=subset_data_filtered,mapping=aes(x=age,y=catch),
              pch=21,size=2,fill="black") +
  # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
  #            method=lm) +
@@ -416,5 +436,108 @@ est_and_cis <- cr_results_and_cis %>%
         legend.background=element_blank(),
         strip.text=element_text(face="bold"))
 
+
+
+inco_filtered <- subset(inco, year >= 1980 & year <= 1989) 
+   
+subset_data_filtered <- subset(subset_data, year >= 1980 & year <= 1989)   
+
+ggplot() +
+  geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
+             pch=21,size=2) +
+  geom_point(dat=subset_data_filtered,mapping=aes(x=age,y=catch),
+             pch=21,size=2,fill="black") +
+ # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
+ #            method=lm) +
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
+#                     aesthetics=c("color","fill")) +
+  facet_wrap(~year) +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        legend.position=c(1,1),
+        legend.justification=c(1.1,1.1),
+        legend.title=element_blank(),
+        legend.background=element_blank(),
+        strip.text=element_text(face="bold"))
+
+
+
+inco_filtered <- subset(inco, year >= 1990 & year <= 1999) 
+   
+subset_data_filtered <- subset(subset_data, year >= 1990 & year <= 1999)   
+
+ggplot() +
+  geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
+             pch=21,size=2) +
+  geom_point(dat=subset_data_filtered,mapping=aes(x=age,y=catch),
+             pch=21,size=2,fill="black") +
+ # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
+ #            method=lm) +
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
+#                     aesthetics=c("color","fill")) +
+  facet_wrap(~year) +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        legend.position=c(1,1),
+        legend.justification=c(1.1,1.1),
+        legend.title=element_blank(),
+        legend.background=element_blank(),
+        strip.text=element_text(face="bold"))
+
+
+
+inco_filtered <- subset(inco, year >= 2000 & year <= 2014) 
+   
+subset_data_filtered <- subset(subset_data, year >= 2000 & year <= 2014)   
+
+ggplot() +
+  geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
+             pch=21,size=2) +
+  geom_point(dat=subset_data_filtered,mapping=aes(x=age,y=catch),
+             pch=21,size=2,fill="black") +
+ # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
+ #            method=lm) +
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
+#                     aesthetics=c("color","fill")) +
+  facet_wrap(~year) +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        legend.position=c(1,1),
+        legend.justification=c(1.1,1.1),
+        legend.title=element_blank(),
+        legend.background=element_blank(),
+        strip.text=element_text(face="bold"))
+
+
+
+inco_filtered <- subset(inco, year >= 2015 & year <= 2022) 
+   
+subset_data_filtered <- subset(subset_data, year >= 2015 & year <= 2022)   
+
+ggplot() +
+  geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
+             pch=21,size=2) +
+  geom_point(dat=subset_data_filtered,mapping=aes(x=age,y=catch),
+             pch=21,size=2,fill="black") +
+ # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
+ #            method=lm) +
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
+#                     aesthetics=c("color","fill")) +
+  facet_wrap(~year) +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        legend.position=c(1,1),
+        legend.justification=c(1.1,1.1),
+        legend.title=element_blank(),
+        legend.background=element_blank(),
+        strip.text=element_text(face="bold"))
 ```
 
