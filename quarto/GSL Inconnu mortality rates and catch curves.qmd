@@ -11,6 +11,9 @@ knitr::opts_chunk$set(echo = TRUE)  # Do you need to add knitr to beginning of q
 ```
 
 
+Slave River Inconnu mortality rate estimates 
+
+
 ```{r load packages, include=FALSE}
 
 # Are all these packages necessary for mort rate calcs?
