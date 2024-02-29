@@ -441,7 +441,7 @@ ggsave(here("figures", "plot_cc_all_yrs.pdf"), plot_cc_all_yrs,
 
 ```
 
-# Plot catch curves in groupd, to better show ages included in mortatliy rate estimates (filled circles)
+# Plot catch curves in year groups, to better show ages included in mortatliy rate estimates (filled circles)
 
 ```{r}
 #| label: plot catch curves by years grouped to see plots better
@@ -578,6 +578,288 @@ ggplot() +
         legend.title=element_blank(),
         legend.background=element_blank(),
         strip.text=element_text(face="bold"))
+
+```
+
+# Load decadal data for mortality rate estimates
+
+```{r}
+#| label: load data for buffalo river decadal mortality rate estimates
+#| include: false
+
+# Load data and look at data file and data types for wrangling
+
+# Should load raw data and use tally to count catch by year and age in R
+# Examples in R4EnviroSci -> week_10_part_1_counting.Rmd
+
+
+inco_buffriv_decade <- read_csv(here("data", "buffriv_decade_catchage.csv"))
+
+str(inco_buffriv_decade)
+
+print(inco_buffriv_decade)
+
+```
+
+# Prepare data for decadal mortality rate estimates
+
+```{r}
+#| label: data prep for decadal data 
+#| include: false
+#|
+
+inco <- inco_buffriv_decade |> 
+  pivot_longer(!age,
+               names_to = "year",                              # in this case year means decade
+               values_to = "catch") |> 
+  select(year, age, catch) |>                                  # reorder columns so year, age, catch
+  arrange(year) |>                                             # arrange catch data by year
+  mutate(catch = ifelse(is.na(catch), 0, catch))               # replace nas in catch with zeros
+  
+#  print(inco)
+
+
+summary_tbl <- inco %>% 
+  pivot_wider(names_from = year, values_from = catch, values_fill = 0) 
+
+```
+
+
+
+```{r}
+#| label: plot data by decade, identify descending limb of catch curve 
+#| echo: false
+#| warning: false
+#| message: false
+
+# Add code to get n - number of samples each year for table
+  
+inco |>   
+
+    ggplot() +
+  
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
+```
+
+# For decadal data create data file with peak catch and descending limb
+
+```{r}
+#| label: for decadal data create data file with peak catch and descending limb - code from chatGPT
+#| include: false
+
+
+# Find the age with the highest catch for each year
+max_catch_ages <- inco %>%
+  group_by(year) %>%
+  summarise(max_age = age[which.max(catch)])
+
+# Create a list to store the subsetted data for each year
+subset_data_list <- list()
+
+# Loop through each year and subset the data
+for (i in 1:nrow(max_catch_ages)) {
+  year <- max_catch_ages$year[i]
+  max_catch_age <- max_catch_ages$max_age[i]
+  subset_data_list[[i]] <- inco[inco$year == year & inco$age >= max_catch_age, ]
+}
+
+# Combine the subsetted data for all years into a single data frame
+subset_data <- do.call(rbind, subset_data_list)
+
+# Print the subsetted data
+print(subset_data)
+```
+
+# Plot to `subset_data` to check ages included in reduced data frame, ages from peak + descending limb of catch curves for decades
+
+```{r}
+#| label: plot descending limbs for decadal data
+#| echo: false
+#| warning: false
+#| message: false
+
+subset_data |>  
+  
+
+ggplot(mapping=aes(x=age,y=catch)) +
+  geom_point(size=2) +
+  geom_line(alpha=0.1,linewidth=1.5) +
+  facet_wrap(~ year) +
+  theme_bw() + theme(legend.position="none")
+
+```
+
+# For decadal data, create nested tibble to use year (first year of decade) to estimate mortality
+
+```{r}
+#| label: create nested tibble using year (first year of decade) to cyle through decade and use in ChapmanRobson function
+#| echo: false
+#| warning: false
+#| message: false
+
+nested_inco_reduced <- subset_data %>% 
+  group_by(year) %>% 
+  nest()
+
+print(nested_inco_reduced)
+
+nested_inco_reduced$data[[1]]
+
+```
+
+# Check pmap working as expected by checking results
+
+```{r}
+#| label: ChapmanRobson catch curve calculations individually by decade (labelled with first year), to check results from pmap
+#| echo: false
+#| warning: false
+#| message: false
+
+
+incoccresults <- chapmanRobson(catch~age,data=nested_inco_reduced$data[[8]]) # data frame 1 is decade 1940's, 8 is the 2020's
+summary(incoccresults)
+confint(incoccresults)
+
+# incoccresults 
+```
+
+# For decadal data, use pmap to calculate mortality rates by decade
+
+```{r}
+#| label: Use pmap to iterate throuh ChapmanRobson catch curve calculations by decade (labelled with first year of decade)
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# using nested tibble and 'mutate', make a column containing cr_results for each year, name new column `model`
+cr_results <- subset_data %>% 
+  group_by(year) %>% 
+  nest() %>% 
+  mutate(model = pmap(list(data),   # tell pmap what element to look at in the list provide in the line above (only one                                         element in list = data)
+            
+                      ~ chapmanRobson(catch~age,data = ..1 ) # tell pmap what to do with data using ~   data = ..1 because                                                                place in list gave pmap
+                      )
+         )
+
+cr_results$model[[1]]      # pmap worked! The results for [[1]] match results calculated individually for the 1940's
+confint(cr_results$model[[1]])    # using 'confint' worked to get confidence intervals for S and Z! 
+
+# From https://rdrr.io/cran/FSA/man/chapmanRobson.html, Value - list of model output that is saved, including 
+# est A 2x2 matrix that contains the estimates and standard errors for S and Z
+
+cr_results$model[[1]]$est[1] # this gives 1947 estimate for S (est position[1]), if use $est, get S, Z and Std. Errors (df)
+
+cr_results$model[[1]]$n # this gives the number of ages included in the 1947 estimates of S and Z
+
+confint(cr_results$model[[1]]) # this give CIs for S and Z for 1947
+
+confint(cr_results$model[[1]],parm="Z")   # this give CIs for Z only for 1947, but I douln't pull out just Z 95% LCI
+        
+res <- c(coef(cr_results$model[[1]]),confint(cr_results$model[[1]],parm="S"),confint(cr_results$model[[1]],parm="Z"))
+names(res) <- c("S","Z","S.LCI","S.UCI","Z.LCI","Z.UCI")
+res[c(1,3,4,2,5,6)]       # worked to pull out S, Z and confidence intervals for 1947!
+
+# this code gets Z and S from values saved in model output - it works, but it's easier to get Z and S and CIs in one tibble
+
+# cr_models_and_results <- cr_results %>%
+#  mutate(survival = pmap_dbl(list(model),
+#                       ~ round((..1)$est[1], digits = 2)),  # (..1) is place in the list on the line above to use, model,                                                                est is the element in the list `model`, I think, and                                                                       est[1] is the element and the position where S is stored   
+#         Z = pmap_dbl(list(model),
+#                         ~ round((..1)$est[2], digits = 2)),  # est[2] is the element and the position where Z is stored
+#                      
+#         n = pmap_dbl(list(model),
+#                         ~ (..1)$n),         # number of ages included in the peak + descending limb used to est S and Z  
+#         )
+ 
+# this code uses the FSA::ChapmanRobson functions summary and confint to get estimates of Z and S and CIs in one tibble
+
+cr_results_and_cis <- cr_results %>%
+  mutate(results = pmap(list(model), 
+                     ~ summary(..1)),
+         cis = pmap(list(model), 
+                     ~ confint(..1))) 
+
+est_and_cis <- cr_results_and_cis %>%
+  mutate(z = pmap(list(results), 
+                     ~ round((..1)[c(2)], digits = 2)), 
+         
+         z_95LCI = pmap(list(cis), 
+                     ~ round((..1)[c(2)], digits = 2)),
+         
+         z_95UCI = pmap(list(cis), 
+                     ~ round((..1)[c(4)], digits = 2)), 
+    
+         s = pmap(list(results), 
+                     ~ round((..1)[c(1)], digits = 2)),
+    
+         s_95LCI = pmap(list(cis), 
+                     ~ round((..1)[c(1)], digits = 2)),
+  
+         s_95UCI = pmap(list(cis), 
+                     ~ round((..1)[c(3)], digits = 2)) 
+         
+           ) 
+
+```
+
+# For decadal data, unnest tibble to create tibble with mortality rate estimates and CIs
+
+```{r}
+#| label: unnest tibble with decadal data, model results, ests of Z, S and CIs, to create a tibble to save with only ests and CIs
+#| echo: false
+#| warning: false
+#| message: false
+
+
+est_and_cis_b <- est_and_cis %>%       # need to ungroup the data, or R won't let you just select only `plot` and `filename` from tibble
+  ungroup() %>%       # if we don't ungroup the data, or R will make you take species and year too, or the data doesn't make sense 
+  select(year, z, z_95LCI, z_95UCI, s, s_95LCI, s_95UCI)
+  
+readr::write_csv(est_and_cis_b, here("results", "buffriv_cr_mort.csv"))               
+
+```
+
+
+# For decades, plot catch curves showing ages included in mortatliy rate estimates (filled circles)
+
+```{r}
+#| label: plot catch curves by decade, year is first year of decade
+#| echo: false
+#| warning: false
+#| message: false
+
+plot_cc_decade <-
+
+ggplot() +
+  geom_point(dat=inco,mapping=aes(x=age,y=catch),
+             pch=21,size=2) +
+  geom_point(dat=subset_data,mapping=aes(x=age,y=catch),
+             pch=21,size=2,fill="black") +
+ # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
+ #            method=lm) +
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
+#                     aesthetics=c("color","fill")) +
+  facet_wrap(~year) +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        legend.position=c(1,1),
+        legend.justification=c(1.1,1.1),
+        legend.title=element_blank(),
+        legend.background=element_blank(),
+        strip.text=element_text(face="bold"))
+
+plot(plot_cc_decade)
+
+ggsave(here("figures", "plot_cc_decade.pdf"), plot_cc_decade,
+       width = 190, height = 120, units = "mm")
 
 ```
 
