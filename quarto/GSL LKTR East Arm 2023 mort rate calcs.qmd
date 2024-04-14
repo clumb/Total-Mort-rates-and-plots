@@ -1,0 +1,128 @@
+---
+title: "GSL 2023 LKTR East Arm mort rate calcs"
+format: html
+editor: visual
+---
+
+
+New quarto file to update Great Slave Lake Lake Trout mortality rate estimate from East Arm, using 2023 data from LKDFN (oto ages, n=128 ages, 72 missing oto from one fisher)
+(no Main Basin/KFN LKTR samples from community sampling in 2023 b/c of wildfire evaculations)
+
+Coped from "GSL Inconnu mortality rates and catch curves Quarto file - the quatro file was for Slave River Inconnu for stock assessment working paper 
+
+
+```{r}
+#| label: note - don't need knitr code chunk at the beginning of quarto file to be able to render 
+#| include: false
+```
+
+```{r}
+#| label: load packages
+#| include: false
+
+library(tidyverse) # ggplot2 and purrr part of tidyverse
+library(janitor)
+library(here)
+library(fs)        # tools to work with file-systems, a bit like {here}
+
+library (FSA)
+library(knitr)     # to use kable() function to format tables
+library(gt)        # to format tables
+library(readr)     # to save csv data files to data folder 
+```
+
+```{r}
+#| label: load data
+#| results: hide
+#| echo: false
+#| warning: false
+#| message: false
+#| include: false
+
+## recommend using the comment-based syntax (#|) vs. chunk options on the first line (e.g. {r, load packages, include=FALSE}) to make documents more portable and consistent across execution engines https://quarto.org/docs/tools/rstudio.html
+
+# Should load raw data and tally catch by age in R
+
+lktr <- read_csv(here("data", "gsl_2023lktr_agefreq.csv"))
+
+str(lktr)
+
+print(lktr)
+```
+
+# Load and look at summary of data, age range and number of observations of age by year
+
+```{r}
+#| label: explore data 
+#| echo: false
+#| warning: false
+#| message: false
+
+# Add code to give me n total number of fish sampled per year, for mort rate table
+
+lktr |>  
+  group_by(year) |>
+  summarize(agerng=max(age)-min(age)+1,
+            agesobs=n()) 
+```
+
+# Visually select years to include in descending limb
+Plot to check ages included in descending limb - should include the peak age, the age when fish have just become fully vulnerable to the gear, and the descending right limb
+
+```{r}
+#| label: plot data by year, identify descending limb of catch curve 
+#| echo: false
+#| warning: false
+#| message: false
+
+# From FishR Vignette - Catch Curve Estimates of Mortality, March 2, 2013, plot scatterplot of age vs log(10)Catch (or catch?)
+# this is the catch curve
+
+# From Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
+# In general, instantaneous mortality (Z) is only estimated from the slope of the “descending limb” of the catch curve
+# Use plots below to identify the “descending limb”
+
+
+lktr |>   
+  ggplot() +
+  facet_wrap(~ year) +
+  geom_point(aes(x = age, y = catch)) +
+  
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
+
+```
+
+# Subset data to only include peak + decsending limb of catch curve in data file for mortality rate calcuation
+
+```{r}
+#| label: create data file with peak catch and descending limb from visually inspecting catch curve 
+#| include: false
+
+# For East Arm 2023 lktr data from LKDFN, max age was 12 years (ten lktr)
+
+subset_data <- lktr |>   
+  filter(age >= 12)
+
+# Print the subsetted data
+print(subset_data)
+
+```
+
+# ChapmanRobson catch curve calculations individually for one year, 2023 for East Arm LKTR
+
+```{r}
+#| label: ChapmanRobson catch curve calculations individually for one year, 2023 for East Arm LKTR
+#| echo: false
+#| warning: false
+#| message: false
+
+
+lktrccresults <- chapmanRobson(catch~age,data=subset_data) # data frame 1 is year 1947, 38 is 2022
+summary(lktrccresults)
+confint(lktrccresults)
+
+# lktrccresults
+```
+```
+

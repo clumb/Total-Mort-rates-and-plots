@@ -425,7 +425,7 @@ ggplot() +
   scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
 #  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
 #                     aesthetics=c("color","fill")) +
-  facet_wrap(~year) +
+  facet_wrap(~year, strip.position="right") +
   theme_bw() +
   theme(panel.grid.major=element_blank(),
         legend.position=c(1,1),
@@ -451,9 +451,11 @@ ggsave(here("figures", "plot_cc_all_yrs.pdf"), plot_cc_all_yrs,
 
 # this code is modified from Derek Ogle's fishR post https://fishr-core-team.github.io/fishR/blog/posts/2023-4-24_Multiple_CatchCurves/
 
-inco_filtered <- subset(inco, year >= 1947 & year <= 1979) 
+inco_filtered <- subset(inco, year >= 1947 & year <= 1989) 
    
-subset_data_filtered <- subset(subset_data, year >= 1947 & year <= 1979)   
+subset_data_filtered <- subset(subset_data, year >= 1947 & year <= 1989)   
+
+plot_cc_buff_1947_1989 <-
 
 ggplot() +
   geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
@@ -462,11 +464,13 @@ ggplot() +
              pch=21,size=2,fill="black") +
  # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
  #            method=lm) +
-  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
-  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+  scale_x_continuous(name=NULL,expand=expansion(mult=0.02),
+                     limits=c(0,25),breaks=seq(0,25,5)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02), 
+                     limits=c(0,200),breaks=seq(0,200,50)) +
 #  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
 #                     aesthetics=c("color","fill")) +
-  facet_wrap(~year) +
+  facet_wrap(~year, strip.position="right") +
   theme_bw() +
   theme(panel.grid.major=element_blank(),
         legend.position=c(1,1),
@@ -475,11 +479,17 @@ ggplot() +
         legend.background=element_blank(),
         strip.text=element_text(face="bold"))
 
+plot(plot_cc_buff_1947_1989)
+
+ggsave(here("figures", "plot_cc_buff_1947_1989.jpg"), plot_cc_buff_1947_1989,
+       width = 190, height = 120, units = "mm")
 
 
-inco_filtered <- subset(inco, year >= 1980 & year <= 1989) 
+inco_filtered <- subset(inco, year >= 1990 & year <= 2022) 
    
-subset_data_filtered <- subset(subset_data, year >= 1980 & year <= 1989)   
+subset_data_filtered <- subset(subset_data, year >= 1990 & year <= 2022)   
+
+plot_cc_buff_1990_2022 <-
 
 ggplot() +
   geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
@@ -488,11 +498,13 @@ ggplot() +
              pch=21,size=2,fill="black") +
  # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
  #            method=lm) +
-  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
-  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
+  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02),
+                     limits=c(0,25),breaks=seq(0,25,5)) +
+  scale_y_continuous(name="Catch",expand=expansion(mult=0.02), 
+                     limits=c(0,200),breaks=seq(0,200,50)) +
 #  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
 #                     aesthetics=c("color","fill")) +
-  facet_wrap(~year) +
+  facet_wrap(~year, strip.position = ("right")) +
   theme_bw() +
   theme(panel.grid.major=element_blank(),
         legend.position=c(1,1),
@@ -501,83 +513,11 @@ ggplot() +
         legend.background=element_blank(),
         strip.text=element_text(face="bold"))
 
+plot(plot_cc_buff_1990_2022)
 
+ggsave(here("figures", "plot_cc_buff_1990_2022.jpg"), plot_cc_buff_1990_2022,
+       width = 190, height = 120, units = "mm")
 
-inco_filtered <- subset(inco, year >= 1990 & year <= 1999) 
-   
-subset_data_filtered <- subset(subset_data, year >= 1990 & year <= 1999)   
-
-ggplot() +
-  geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
-             pch=21,size=2) +
-  geom_point(dat=subset_data_filtered,mapping=aes(x=age,y=catch),
-             pch=21,size=2,fill="black") +
- # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
- #            method=lm) +
-  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
-  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
-#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
-#                     aesthetics=c("color","fill")) +
-  facet_wrap(~year) +
-  theme_bw() +
-  theme(panel.grid.major=element_blank(),
-        legend.position=c(1,1),
-        legend.justification=c(1.1,1.1),
-        legend.title=element_blank(),
-        legend.background=element_blank(),
-        strip.text=element_text(face="bold"))
-
-
-
-inco_filtered <- subset(inco, year >= 2000 & year <= 2014) 
-   
-subset_data_filtered <- subset(subset_data, year >= 2000 & year <= 2014)   
-
-ggplot() +
-  geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
-             pch=21,size=2) +
-  geom_point(dat=subset_data_filtered,mapping=aes(x=age,y=catch),
-             pch=21,size=2,fill="black") +
- # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
- #            method=lm) +
-  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
-  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
-#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
-#                     aesthetics=c("color","fill")) +
-  facet_wrap(~year) +
-  theme_bw() +
-  theme(panel.grid.major=element_blank(),
-        legend.position=c(1,1),
-        legend.justification=c(1.1,1.1),
-        legend.title=element_blank(),
-        legend.background=element_blank(),
-        strip.text=element_text(face="bold"))
-
-
-
-inco_filtered <- subset(inco, year >= 2015 & year <= 2022) 
-   
-subset_data_filtered <- subset(subset_data, year >= 2015 & year <= 2022)   
-
-ggplot() +
-  geom_point(dat=inco_filtered,mapping=aes(x=age,y=catch),
-             pch=21,size=2) +
-  geom_point(dat=subset_data_filtered,mapping=aes(x=age,y=catch),
-             pch=21,size=2,fill="black") +
- # geom_smooth(dat=incoccresults,mapping=aes(x=age,y=catch),
- #            method=lm) +
-  scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
-  scale_y_continuous(name="Catch",expand=expansion(mult=0.02)) +
-#  scale_color_manual(values=c("Fall"="black","Spring"="gray60"),
-#                     aesthetics=c("color","fill")) +
-  facet_wrap(~year) +
-  theme_bw() +
-  theme(panel.grid.major=element_blank(),
-        legend.position=c(1,1),
-        legend.justification=c(1.1,1.1),
-        legend.title=element_blank(),
-        legend.background=element_blank(),
-        strip.text=element_text(face="bold"))
 
 ```
 
