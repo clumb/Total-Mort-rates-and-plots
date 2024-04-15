@@ -4,12 +4,9 @@ format: html
 editor: visual
 ---
 
+New quarto file to update Great Slave Lake Lake Trout mortality rate estimate from East Arm, using 2023 data from LKDFN (oto ages, n=128 ages, 72 missing oto from one fisher) (no Main Basin/KFN LKTR samples from community sampling in 2023 b/c of wildfire evaculations)
 
-New quarto file to update Great Slave Lake Lake Trout mortality rate estimate from East Arm, using 2023 data from LKDFN (oto ages, n=128 ages, 72 missing oto from one fisher)
-(no Main Basin/KFN LKTR samples from community sampling in 2023 b/c of wildfire evaculations)
-
-Coped from "GSL Inconnu mortality rates and catch curves Quarto file - the quatro file was for Slave River Inconnu for stock assessment working paper 
-
+Coped from "GSL Inconnu mortality rates and catch curves Quarto file - the quatro file was for Slave River Inconnu for stock assessment working paper
 
 ```{r}
 #| label: note - don't need knitr code chunk at the beginning of quarto file to be able to render 
@@ -67,6 +64,7 @@ lktr |>
 ```
 
 # Visually select years to include in descending limb
+
 Plot to check ages included in descending limb - should include the peak age, the age when fish have just become fully vulnerable to the gear, and the descending right limb
 
 ```{r}
@@ -100,9 +98,12 @@ lktr |>
 #| include: false
 
 # For East Arm 2023 lktr data from LKDFN, max age was 12 years (ten lktr)
+# ended up truncating catch data to age 41 and younger, to get mort rate more in line with recent years
+# in Natural Mortality Rate Calculator, used age 42 for max age (longevity) for East Arm, and M median ~ 0.16, M mean ~ 0.24
+# used this mort rate estimate to update east arm mort rate for 2023 for GSLAC May 2024
 
 subset_data <- lktr |>   
-  filter(age >= 12)
+  filter(age >= 12, age <= 41)
 
 # Print the subsetted data
 print(subset_data)
@@ -118,11 +119,11 @@ print(subset_data)
 #| message: false
 
 
-lktrccresults <- chapmanRobson(catch~age,data=subset_data) # data frame 1 is year 1947, 38 is 2022
+lktrccresults <- chapmanRobson(catch~age,data=subset_data) 
 summary(lktrccresults)
 confint(lktrccresults)
 
 # lktrccresults
 ```
-```
 
+\`\`\`
