@@ -30,7 +30,6 @@ library(gt)        # to format tables
 library(readr)     # to save csv data files to data folder 
 ```
 
-
 ```{r}
 #| label: load data
 #| include: false
@@ -83,9 +82,7 @@ summary_tbl <- inco %>%
 # readr::write_csv(summary_tbl, here("data", "inco_buffriv_agefreq.csv"))    # save final buff river age freq data file 
 ```
 
-
-# Plot data by year, identify descending limb of catch curve 
-
+# Plot data by year, identify descending limb of catch curve
 
 ```{r}
 #| label: plot data by year, identify descending limb of catch curve 
@@ -172,7 +169,6 @@ inco |>
   scale_x_continuous(name="Age (yrs)",expand=expansion(mult=0.02)) +
   scale_y_continuous(name="Catch",expand=expansion(mult=0.02))
 ```
-
 
 ```{r}
 #| label: create data file with peak catch and descending limb for each year - code from chatGPT
@@ -276,7 +272,6 @@ ggplot(mapping=aes(x=age,y=catch)) +
 
 ```
 
-
 ```{r}
 #| label: create nested tibble using year to cyle through each year of data to use in ChapmanRobson function
 #| echo: false
@@ -293,7 +288,6 @@ nested_inco_reduced$data[[1]]
 
 ```
 
-
 ```{r}
 #| label: ChapmanRobson catch curve calculations individually by year, to check results from pmap
 #| echo: false
@@ -307,7 +301,6 @@ confint(incoccresults)
 
 # incoccresults 
 ```
-
 
 ```{r}
 #| label: Use pmap to iterate throuh ChapmanRobson catch curve calculations by year
@@ -387,7 +380,6 @@ est_and_cis <- cr_results_and_cis %>%
 
 ```
 
-
 ```{r}
 #| label: unnest tibble with data, model results, and ests of Z, S and CIs, to create a tibble to save with only ests and CIs
 #| echo: false
@@ -402,7 +394,6 @@ est_and_cis_b <- est_and_cis %>%       # need to ungroup the data, or R won't le
 readr::write_csv(est_and_cis_b, here("results", "buffriv_cr_mort.csv"))               
 
 ```
-
 
 # Plot catch curves showing ages included in mortatliy rate estimates (filled circles) - all years in one figure
 
@@ -563,8 +554,6 @@ summary_tbl <- inco %>%
   pivot_wider(names_from = year, values_from = catch, values_fill = 0) 
 
 ```
-
-
 
 ```{r}
 #| label: plot data by decade, identify descending limb of catch curve 
@@ -765,7 +754,6 @@ readr::write_csv(est_and_cis_b, here("results", "buffriv_cr_mort.csv"))
 
 ```
 
-
 # For decades, plot catch curves showing ages included in mortatliy rate estimates (filled circles)
 
 ```{r}
@@ -802,4 +790,3 @@ ggsave(here("figures", "plot_cc_decade.pdf"), plot_cc_decade,
        width = 190, height = 120, units = "mm")
 
 ```
-
